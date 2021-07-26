@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.yzt.mapper.ProcurementMapper">
+    
+    <resultMap type="Procurement" id="ProcurementResult">
+        <result property="procurementId"    column="procurement_id"    />
+        <result property="supplierId"    column="supplier_id"    />
+        <result property="productId"    column="product_id"    />
+        <result property="number"    column="number"    />
+        <result property="price"    column="price"    />
+        <result property="totalPrice"    column="total_price"    />
+        <result property="oddNumbers"    column="odd_numbers"    />
+        <result property="receipt"    column="receipt"    />
+        <result property="deliveryTime"    column="delivery_time"    />
+        <result property="procurementNote"    column="procurement_note"    />
+        <result property="status"    column="status"    />
+        <association property="supplier" column="supplier_id"
+                     javaType="com.ruoyi.yzt.domain.Supplier">
+            <id column="supplier_id" property="supplierId" />
+            <result column="supplier_name" property="supplierName" />
+        </association>
+        <collection property="product" ofType="com.ruoyi.yzt.domain.Product" column="product_id">
+            <id column="product_id" property="productId" />
+            <result column="product_name" property="productName" />
+            <result column="model" property="model" />
+            <result column="unit" property="unit" />
+            <result column="price" property="price" />
+        </collection>
+    </resultMap>
+
+    <sql id="selectProcurementVo">
+        select procurement_id, supplier_id, product_id, number, price, total_price, odd_numbers, receipt, delivery_time, procurement_note, status from procurement
+    </sql>
+
+    <select id="selectProcurementList" parameterType="Procurement" resultMap="ProcurementResult">
+        select p.procurement_id, p.supplier_id, p.product_id, number, p.price, p.total_price, p.odd_numbers, p.receipt, p.delivery_time, p.procurement_note, p.status,
+        pt.product_id, pt.product_name, pt.model, pt.unit, pt.price, s.supplier_id,s.supplier_name
+        from supplier s, procurement p, product pt
+        <where>  
+            <if test="supplierId != null "> and p.supplier_id = #{supplierId}</if>
+            <if test="productId != null "> and p.product_id = #{productId}</if>
+            <if test="number != null "> and p.number = #{number}</if>
+            <if test="price != null "> and p.price = #{price}</if>
+            <if test="totalPrice != null "> and p.total_price = #{totalPrice}</if>
+            <if test="oddNumbers != null  and oddNumbers != ''"> and p.odd_numbers like concat('%', #{oddNumbers}, '%')</if>
+            <if test="receipt != null "> and p.receipt = #{receipt}</if>
+            <if test="deliveryTime != null "> and DATE(p.delivery_time) = #{deliveryTime}</if>
+            <if test="procurementNote != null  and procurementNote != ''"> and p.procurement_note = #{procurementNote}</if>
+            <if test="status != null "> and p.status = #{status}</if>
+            <if test="supplier.supplierName != null  and supplier.supplierName != ''"> and s.supplier_name like concat('%', #{supplier.supplierName}, '%')</if>
+            <if test="product.productName != null  and product.productName != ''"> and pt.product_name like concat('%', #{product.productName}, '%')</if>
+             and pt.product_id = p.product_id
+             and s.supplier_id = p.supplier_id
+        </where>
+        order by p.procurement_id  desc
+    </select>
+    
+    <select id="selectProcurementById" parameterType="Integer" resultMap="ProcurementResult">
+        <include refid="selectProcurementVo"/>
+        where procurement_id = #{procurementId}
+    </select>
+        
+    <insert id="insertProcurement" parameterType="Procurement" useGeneratedKeys="true" keyProperty="procurementId">
+        insert into procurement
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="supplierId != null">supplier_id,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="number != null">number,</if>
+            <if test="price != null">price,</if>
+            <if test="totalPrice != null">total_price,</if>
+            <if test="oddNumbers != null">odd_numbers,</if>
+            <if test="receipt != null">receipt,</if>
+            <if test="deliveryTime != null">delivery_time,</if>
+            <if test="procurementNote != null">procurement_note,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="supplierId != null">#{supplierId},</if>
+            <if test="productId != null">#{productId},</if>
+            <if test="number != null">#{number},</if>
+            <if test="price != null">#{price},</if>
+            <if test="totalPrice != null">#{totalPrice},</if>
+            <if test="oddNumbers != null">#{oddNumbers},</if>
+            <if test="receipt != null">#{receipt},</if>
+            <if test="deliveryTime != null">#{deliveryTime},</if>
+            <if test="procurementNote != null">#{procurementNote},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateProcurement" parameterType="Procurement">
+        update procurement
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="supplierId != null">supplier_id = #{supplierId},</if>
+            <if test="productId != null">product_id = #{productId},</if>
+            <if test="number != null">number = #{number},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="totalPrice != null">total_price = #{totalPrice},</if>
+            <if test="oddNumbers != null">odd_numbers = #{oddNumbers},</if>
+            <if test="receipt != null">receipt = #{receipt},</if>
+            <if test="deliveryTime != null">delivery_time = #{deliveryTime},</if>
+            <if test="procurementNote != null">procurement_note = #{procurementNote},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where procurement_id = #{procurementId}
+    </update>
+
+    <delete id="deleteProcurementById" parameterType="Integer">
+        delete from procurement where procurement_id = #{procurementId}
+    </delete>
+
+    <delete id="deleteProcurementByIds" parameterType="String">
+        delete from procurement where procurement_id in 
+        <foreach item="procurementId" collection="array" open="(" separator="," close=")">
+            #{procurementId}
+        </foreach>
+    </delete>
+    
+</mapper>

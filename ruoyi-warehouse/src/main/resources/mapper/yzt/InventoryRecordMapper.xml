@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.yzt.mapper.InventoryRecordMapper">
+
+    <resultMap type="InventoryRecord" id="InventoryRecordResult">
+        <result property="inventoryRecordId"    column="inventory_record_id"    />
+        <result property="supplierId"    column="supplier_id"    />
+        <result property="productId"    column="product_id"    />
+        <result property="recordTime"    column="record_time"    />
+        <result property="operator"    column="operator"    />
+        <result property="changeNumber"    column="change_number"    />
+        <result property="recordStatus"    column="record_status"    />
+        <result property="note"    column="note"    />
+        <result property="receivePeople"    column="receive_people"    />
+        <association property="supplier" column="supplier_id"
+                     javaType="com.ruoyi.yzt.domain.Supplier">
+            <id column="supplier_id" property="supplierId" />
+            <result column="supplier_name" property="supplierName" />
+        </association>
+        <collection property="product" ofType="com.ruoyi.yzt.domain.Product" column="product_id">
+            <id column="product_id" property="productId" />
+            <result column="product_name" property="productName" />
+        </collection>
+    </resultMap>
+
+    <sql id="selectInventoryRecordVo">
+        select inventory_record_id, supplier_id, product_id, record_time, operator, change_number, record_status, note, receive_people from inventory_record
+    </sql>
+
+    <select id="selectInventoryRecordList" parameterType="InventoryRecord" resultMap="InventoryRecordResult">
+        select ir.inventory_record_id, ir.supplier_id, ir.product_id, ir.record_time, ir.operator, ir.change_number, ir.record_status, ir.note, ir.receive_people,
+        p.product_id, p.product_name, s.supplier_id, s.supplier_name
+        from supplier s, inventory_record ir, product p
+        <where>
+            <if test="supplierId != null "> and ir.supplier_id = #{supplierId}</if>
+            <if test="productId != null "> and ir.product_id = #{productId}</if>
+            <if test="recordTime != null "> and Date(ir.record_time) = #{recordTime}</if>
+            <if test="operator != null  and operator != ''"> and ir.operator = #{operator}</if>
+            <if test="changeNumber != null "> and ir.change_number = #{changeNumber}</if>
+            <if test="recordStatus != null "> and ir.record_status = #{recordStatus}</if>
+            <if test="note != null  and note != ''"> and ir.note = #{note}</if>
+            <if test="receivePeople != null  and receivePeople != ''"> and ir.receive_people like concat('%', #{receivePeople}, '%') </if>
+            <if test="supplier.supplierName != null  and supplier.supplierName != ''"> and s.supplier_name like concat('%', #{supplier.supplierName}, '%')</if>
+            <if test="product.productName != null  and product.productName != ''"> and p.product_name like concat('%', #{product.productName}, '%')</if>
+             and s.supplier_id =ir.supplier_id
+             and ir.product_id = p.product_id
+        </where>
+        order by ir.inventory_record_id desc
+    </select>
+
+    <select id="selectInventoryRecordById" parameterType="Integer" resultMap="InventoryRecordResult">
+        <include refid="selectInventoryRecordVo"/>
+        where inventory_record_id = #{inventoryRecordId}
+    </select>
+
+    <insert id="insertInventoryRecord" parameterType="InventoryRecord" useGeneratedKeys="true" keyProperty="inventoryRecordId">
+        insert into inventory_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="supplierId != null">supplier_id,</if>
+            <if test="productId != null">product_id,</if>
+            <if test="recordTime != null">record_time,</if>
+            <if test="operator != null">operator,</if>
+            <if test="changeNumber != null">change_number,</if>
+            <if test="recordStatus != null">record_status,</if>
+            <if test="note != null">note,</if>
+            <if test="receivePeople != null">receive_people,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="supplierId != null">#{supplierId},</if>
+            <if test="productId != null">#{productId},</if>
+            <if test="recordTime != null">#{recordTime},</if>
+            <if test="operator != null">#{operator},</if>
+            <if test="changeNumber != null">#{changeNumber},</if>
+            <if test="recordStatus != null">#{recordStatus},</if>
+            <if test="note != null">#{note},</if>
+            <if test="receivePeople != null">#{receivePeople},</if>
+        </trim>
+    </insert>
+
+    <update id="updateInventoryRecord" parameterType="InventoryRecord">
+        update inventory_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="supplierId != null">supplier_id = #{supplierId},</if>
+            <if test="productId != null">product_id = #{productId},</if>
+            <if test="recordTime != null">record_time = #{recordTime},</if>
+            <if test="operator != null">operator = #{operator},</if>
+            <if test="changeNumber != null">change_number = #{changeNumber},</if>
+            <if test="recordStatus != null">record_status = #{recordStatus},</if>
+            <if test="note != null">note = #{note},</if>
+            <if test="receivePeople != null">receive_people = #{receivePeople},</if>
+        </trim>
+        where inventory_record_id = #{inventoryRecordId}
+    </update>
+
+    <delete id="deleteInventoryRecordById" parameterType="Integer">
+        delete from inventory_record where inventory_record_id = #{inventoryRecordId}
+    </delete>
+
+    <delete id="deleteInventoryRecordByIds" parameterType="String">
+        delete from inventory_record where inventory_record_id in
+        <foreach item="inventoryRecordId" collection="array" open="(" separator="," close=")">
+            #{inventoryRecordId}
+        </foreach>
+    </delete>
+
+</mapper>
